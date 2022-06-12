@@ -1,12 +1,8 @@
 package com.github.frmi.dlq.api.web;
 
-import com.github.frmi.dlq.api.service.DlqRetryer;
-import com.github.frmi.dlq.api.util.DlqMapper;
+import com.github.frmi.dlq.api.service.DlqService;
 import com.github.frmi.dlq.api.web.dto.DlqRecordDto;
-import com.github.frmi.dlq.api.web.error.DlqRecordNotFoundException;
-import com.github.frmi.dlq.api.web.error.DlqRetryFailedException;
-import com.github.frmi.dlq.api.data.DlqRecord;
-import com.github.frmi.dlq.api.data.DlqRecordRepository;
+import com.github.frmi.dlq.api.web.dto.DlqRecordDtoResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,41 +11,29 @@ import java.util.List;
 @RestController
 public class DeadLetterQueueController {
 
-    private final DlqRetryer retryer;
-    private final DlqRecordRepository repository;
+    private final DlqService dlqService;
 
-    public DeadLetterQueueController(DlqRetryer retryer, DlqRecordRepository repository) {
-        this.retryer = retryer;
-        this.repository = repository;
+    public DeadLetterQueueController(DlqService dlqService) {
+        this.dlqService = dlqService;
     }
 
     @GetMapping("/all")
-    public List<DlqRecord> all() {
-        return repository.findAll();
+    public List<DlqRecordDtoResponse> all(@RequestParam(required = false) boolean includeRetried) {
+        return dlqService.getDlqRecords(includeRetried);
     }
 
     @GetMapping("/find/{id}")
-    public DlqRecord find(@PathVariable long id) {
-        return repository.findById(id).orElseThrow(() -> new DlqRecordNotFoundException(id));
+    public DlqRecordDtoResponse find(@PathVariable long id) {
+        return dlqService.findById(id);
     }
 
     @PostMapping("/push")
-    public DlqRecord push(@RequestBody DlqRecordDto dlqRecordDto) {
-        DlqRecord record = DlqMapper.dtoToEntity(dlqRecordDto);
-        return repository.save(record);
+    public DlqRecordDtoResponse push(@RequestBody DlqRecordDto dlqRecordDto) {
+        return dlqService.push(dlqRecordDto);
     }
 
     @GetMapping("/retry/{id}")
-    public ResponseEntity<DlqRecord> retry(@PathVariable long id) {
-        DlqRecord record = repository.findById(id).orElseThrow(() -> new DlqRecordNotFoundException(id));
-
-        boolean result = retryer.retry(record);
-        if (result) {
-            record.setDequeued(true);
-            record = repository.save(record);
-            return ResponseEntity.ok(record);
-        }
-
-        throw new DlqRetryFailedException(id);
+    public ResponseEntity<DlqRecordDtoResponse> retry(@PathVariable long id, @RequestParam(required = false) boolean forceRetry) {
+        return dlqService.retry(id, forceRetry);
     }
 }

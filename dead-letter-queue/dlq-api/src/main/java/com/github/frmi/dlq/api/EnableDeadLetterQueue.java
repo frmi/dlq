@@ -2,6 +2,8 @@ package com.github.frmi.dlq.api;
 
 import com.github.frmi.dlq.api.data.DlqRecord;
 import com.github.frmi.dlq.api.data.DlqRecordRepository;
+import com.github.frmi.dlq.api.service.DlqService;
+import com.github.frmi.dlq.api.web.ApiConfig;
 import com.github.frmi.dlq.api.web.DeadLetterQueueController;
 import com.github.frmi.dlq.api.web.error.DeadLetterQueueAdvice;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -17,6 +19,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @EntityScan(basePackageClasses = DlqRecord.class)
 @EnableJpaRepositories(basePackageClasses = DlqRecordRepository.class)
-@Import({DeadLetterQueueController.class, DeadLetterQueueAdvice.class})
+@Import({DeadLetterQueueController.class, DeadLetterQueueAdvice.class, DlqService.class, ApiConfig.class})
 public @interface EnableDeadLetterQueue {
 }

@@ -7,15 +7,9 @@ public class DlqRecord {
 
     private Long id;
     private LocalDateTime createdAt;
-    private Object value;
-    private String exception;
-    private String type;
     private boolean dequeued;
-
-    public DlqRecord() {
-        this.createdAt = LocalDateTime.now();
-        this.dequeued = false;
-    }
+    private String message;
+    private String exception;
 
     public Long getId() {
         return id;
@@ -41,12 +35,12 @@ public class DlqRecord {
         this.exception = exception;
     }
 
-    public Object getValue() {
-        return value;
+    public String getMessage() {
+        return message;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public boolean isDequeued() {
@@ -57,35 +51,27 @@ public class DlqRecord {
         this.dequeued = dequeued;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DlqRecord record = (DlqRecord) o;
-        return dequeued == record.dequeued && Objects.equals(id, record.id) && Objects.equals(createdAt, record.createdAt) && Objects.equals(value, record.value) && Objects.equals(exception, record.exception);
+        DlqRecord dlqRecord = (DlqRecord) o;
+        return dequeued == dlqRecord.dequeued && Objects.equals(id, dlqRecord.id) && Objects.equals(createdAt, dlqRecord.createdAt) && Objects.equals(message, dlqRecord.message) && Objects.equals(exception, dlqRecord.exception);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, createdAt, value, exception, dequeued);
+        return Objects.hash(id, createdAt, dequeued, message, exception);
     }
 
     @Override
     public String toString() {
-        return "Record{" +
+        return "DlqRecord{" +
                 "id=" + id +
                 ", createdAt=" + createdAt +
-                ", value='" + value + '\'' +
-                ", exception='" + exception + '\'' +
                 ", dequeued=" + dequeued +
+                ", message='" + message + '\'' +
+                ", exception='" + exception + '\'' +
                 '}';
     }
 }

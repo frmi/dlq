@@ -1,9 +1,8 @@
 package com.github.frmi.dlq.api.util;
 
-import com.github.frmi.dlq.api.web.dto.DlqRecordDto;
 import com.github.frmi.dlq.api.data.DlqRecord;
-
-import java.util.Map;
+import com.github.frmi.dlq.api.web.dto.DlqRecordDto;
+import com.github.frmi.dlq.api.web.dto.DlqRecordDtoResponse;
 
 public class DlqMapper {
 
@@ -14,13 +13,18 @@ public class DlqMapper {
     public static DlqRecord dtoToEntity(DlqRecordDto dto) {
         DlqRecord dlqRecord = new DlqRecord();
         dlqRecord.setException(dto.getException());
-        dlqRecord.setValue(dto.getValue());
-        dlqRecord.setKey(dto.getKey());
-        dlqRecord.setOffset(dto.getOffset());
-        dlqRecord.setTopic(dto.getTopic());
-        dlqRecord.setPartition(dto.getPartition());
-        dlqRecord.setTimestamp(dto.getTimestamp());
+        dlqRecord.setMessage(dto.getMessage());
         return dlqRecord;
+    }
+
+    public static DlqRecordDtoResponse recordToResponseEntity(DlqRecord record) {
+        DlqRecordDtoResponse response = new DlqRecordDtoResponse();
+        response.setException(record.getException());
+        response.setMessage(record.getMessage());
+        response.setId(record.getId());
+        response.setCreatedAt(record.getCreatedAt());
+        response.setDequeued(record.isDequeued());
+        return response;
     }
 
 }

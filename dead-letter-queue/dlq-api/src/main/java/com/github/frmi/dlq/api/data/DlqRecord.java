@@ -9,26 +9,13 @@ public class DlqRecord {
 
     private @Id @GeneratedValue Long id;
     private LocalDateTime createdAt;
-    private String topic;
-    private int partition;
-    private long timestamp;
     private boolean dequeued;
 
     @Lob
+    private String message;
+
+    @Lob
     private String exception;
-
-    @Lob
-    private Object headers;
-
-    @Column(name="`value`")
-    @Lob
-    private String value;
-
-    @Column(name="`key`")
-    private String key;
-
-    @Column(name="`offset`")
-    private long offset;
 
     public DlqRecord() {
         this.createdAt = LocalDateTime.now();
@@ -59,44 +46,12 @@ public class DlqRecord {
         this.exception = exception;
     }
 
-    public String getValue() {
-        return value;
+    public String getMessage() {
+        return message;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public long getOffset() {
-        return offset;
-    }
-
-    public void setOffset(long offset) {
-        this.offset = offset;
-    }
-
-    public int getPartition() {
-        return partition;
-    }
-
-    public void setPartition(int partition) {
-        this.partition = partition;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public boolean isDequeued() {
@@ -107,33 +62,17 @@ public class DlqRecord {
         this.dequeued = dequeued;
     }
 
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public Object getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(Object headers) {
-        this.headers = headers;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DlqRecord dlqRecord = (DlqRecord) o;
-        return offset == dlqRecord.offset && partition == dlqRecord.partition && timestamp == dlqRecord.timestamp && dequeued == dlqRecord.dequeued && Objects.equals(id, dlqRecord.id) && Objects.equals(createdAt, dlqRecord.createdAt) && Objects.equals(value, dlqRecord.value) && Objects.equals(exception, dlqRecord.exception) && Objects.equals(key, dlqRecord.key);
+        return dequeued == dlqRecord.dequeued && Objects.equals(id, dlqRecord.id) && Objects.equals(createdAt, dlqRecord.createdAt) && Objects.equals(message, dlqRecord.message) && Objects.equals(exception, dlqRecord.exception);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, createdAt, value, exception, key, offset, partition, timestamp, dequeued);
+        return Objects.hash(id, createdAt, dequeued, message, exception);
     }
 
     @Override
@@ -141,13 +80,9 @@ public class DlqRecord {
         return "DlqRecord{" +
                 "id=" + id +
                 ", createdAt=" + createdAt +
-                ", value='" + value + '\'' +
-                ", exception='" + exception + '\'' +
-                ", key='" + key + '\'' +
-                ", offset=" + offset +
-                ", partition=" + partition +
-                ", timestamp=" + timestamp +
                 ", dequeued=" + dequeued +
+                ", message='" + message + '\'' +
+                ", exception='" + exception + '\'' +
                 '}';
     }
 }

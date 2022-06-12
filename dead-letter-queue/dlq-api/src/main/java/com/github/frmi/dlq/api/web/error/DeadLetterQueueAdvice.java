@@ -23,4 +23,11 @@ public class DeadLetterQueueAdvice {
         return ex.getMessage();
     }
 
+    @ResponseBody
+    @ExceptionHandler(DlQRecordAlreadyRetriedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    String alreadyRetriedHandler(DlQRecordAlreadyRetriedException ex) {
+        return ex.getMessage();
+    }
+
 }

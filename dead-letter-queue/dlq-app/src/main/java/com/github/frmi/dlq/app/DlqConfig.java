@@ -12,8 +12,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 public class DlqConfig {
 
     @Bean
-    public DlqRetryer retryer(KafkaTemplate<String, String> kafkaTemplate) {
-        return new KafkaRetryer(kafkaTemplate);
+    public DlqRetryer retryer(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
+        return new KafkaRetryer(kafkaTemplate, objectMapper);
     }
 
     @Bean

@@ -105,14 +105,15 @@ public class KafkaConsumerConfig {
 
                 try {
                     ObjectMapper mapper = new ObjectMapper();
-                    recordDto.setValue(mapper.writeValueAsString(record.value()));
 
-                    recordDto.setKey(record.key());
-                    recordDto.setHeaders(headersToMap(record.headers()));
-                    recordDto.setOffset(record.offset());
-                    recordDto.setPartition(record.partition());
-                    recordDto.setTimestamp(record.timestamp());
-                    recordDto.setTopic(record.topic());
+                    DlqEntry entry = new DlqEntry();
+                    entry.setKey((String)record.key());
+                    entry.setOffset(record.offset());
+                    entry.setPartition(record.partition());
+                    entry.setTimestamp(record.timestamp());
+                    entry.setTopic(record.topic());
+                    entry.setValue(mapper.writeValueAsString(record.value()));
+                    recordDto.setMessage(mapper.writeValueAsString(entry));
                     ResponseEntity<DlqRecord> response = restTemplate.postForEntity("http://localhost:8080/dlq/push", recordDto, DlqRecord.class);
                     if (response.getStatusCode() == HttpStatus.OK) {
                         LOGGER.error("Error thrown during handling of record " + record + ". Persisted as " + response, thrownException);
