@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/dead-letter-queue/dead-letter-queue.iml" filepath="$PROJECT_DIR$/dead-letter-queue/dead-letter-queue.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dead-letter-queue/dlq-api/dlq-api.iml" filepath="$PROJECT_DIR$/dead-letter-queue/dlq-api/dlq-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dead-letter-queue/dlq-app/dlq-app.iml" filepath="$PROJECT_DIR$/dead-letter-queue/dlq-app/dlq-app.iml" />
       <module fileurl="file://$PROJECT_DIR$/sample-kafka-app/sample-kafka-app.iml" filepath="$PROJECT_DIR$/sample-kafka-app/sample-kafka-app.iml" />
     </modules>
   </component>

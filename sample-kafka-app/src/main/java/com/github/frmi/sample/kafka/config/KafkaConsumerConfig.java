@@ -1,18 +1,22 @@
 package com.github.frmi.sample.kafka.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.frmi.sample.kafka.model.Greeting;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.RecordDeserializationException;
-import org.apache.kafka.common.record.Record;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -22,8 +26,10 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.Duration;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,18 +84,45 @@ public class KafkaConsumerConfig {
                 LOGGER.error("Error thrown during poll for consumer " + consumer.groupMetadata().toString(), thrownException);
                 if (thrownException instanceof RecordDeserializationException) {
 
-                    // TODO: Push message to DLQ - But how? Record cannot be fetched
+                    // TODO: Maybe push message to DLQ - But how? Record cannot be fetched
 
                     RecordDeserializationException recordDeserializationException = (RecordDeserializationException) thrownException;
                     long currentOffset = recordDeserializationException.offset();
                     consumer.seek(recordDeserializationException.topicPartition(), currentOffset+1);
+                    LOGGER.error("Skipping record with offset " + currentOffset + ". ConsumerGroup: " + consumer.groupMetadata().toString(), thrownException);
                 }
             }
 
             @Override
             public void handleRecord(Exception thrownException, ConsumerRecord<?, ?> record, Consumer<?, ?> consumer, MessageListenerContainer container) {
-                // TODO: Push message to DLQ
-                LOGGER.error("Error thrown during handling of record " + record.toString(), thrownException);
+                RestTemplate restTemplate = new RestTemplate();
+                DlqRecordDto recordDto = new DlqRecordDto();
+
+                StringWriter writer = new StringWriter();
+                PrintWriter printer = new PrintWriter(writer);
+                thrownException.printStackTrace(printer);
+                recordDto.setException(writer.toString());
+
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    recordDto.setValue(mapper.writeValueAsString(record.value()));
+
+                    recordDto.setKey(record.key());
+                    recordDto.setHeaders(headersToMap(record.headers()));
+                    recordDto.setOffset(record.offset());
+                    recordDto.setPartition(record.partition());
+                    recordDto.setTimestamp(record.timestamp());
+                    recordDto.setTopic(record.topic());
+                    ResponseEntity<DlqRecord> response = restTemplate.postForEntity("http://localhost:8080/dlq/push", recordDto, DlqRecord.class);
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        LOGGER.error("Error thrown during handling of record " + record + ". Persisted as " + response, thrownException);
+                    } else {
+                        LOGGER.error("Error pushing record " + record + ". Response " + response);
+                    }
+
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("Error serializing value of record " + record, e);
+                }
             }
 
             @Override
@@ -124,6 +157,13 @@ public class KafkaConsumerConfig {
         });
 
         return factory;
+    }
+
+
+    public static Map<String, byte[]> headersToMap(Headers headers) {
+        Map<String, byte[]> headerMap = new HashMap<>();
+        headers.forEach(header -> headerMap.put(header.key(), header.value()));
+        return headerMap;
     }
 
 }
