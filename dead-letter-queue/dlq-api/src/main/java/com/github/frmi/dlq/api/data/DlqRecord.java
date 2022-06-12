@@ -7,13 +7,35 @@ import java.util.Objects;
 @Entity
 public class DlqRecord {
 
-    private @Id @GeneratedValue Long id;
+    /**
+     * Id.
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "dlq_record_sequence_generator")
+    @SequenceGenerator(name = "dlq_record_sequence_generator", sequenceName = "dlq_record_sequence")
+    private Long id;
+
+    /**
+     * Record created at.
+     */
+    @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    /**
+     * Depicts whether the record has successfully been retried.
+     */
     private boolean dequeued;
 
+    /**
+     * Content of the message that holds everything for the user to retry this record.
+     */
     @Lob
+    @Column(nullable = false)
     private String message;
 
+    /**
+     * The exception that caused this record to be sent to dlq.
+     */
     @Lob
     private String exception;
 
