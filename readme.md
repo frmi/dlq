@@ -289,7 +289,9 @@ docker run -p 80:80 -p 9092:9092 -p 8083:8083 -p 8081:8081 \
  -e ADV_HOST=127.0.0.1:9092 \
  xeotek/kadeck-allinone:latest
 ```
-3Make sure you have postgresql running.  
+This will create containers for Kafka, zookeeper and Kadeck Web (username=admin, password=admin). See https://support.xeotek.com/hc/en-us/articles/4611836680722-Run-KaDeck-Web-All-In-One-Box-to-test-your-applications
+
+3. Make sure you have postgresql running.  
 The project has a docker-compose file to setup a postgresql and a pgadmin container.
 ```
 cd dead-letter-queue/dlq-app/docker
