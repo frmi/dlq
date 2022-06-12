@@ -3,7 +3,7 @@ package com.github.frmi.sample.kafka.config;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class DlqRecord {
+public class DlqRecordResponseDto {
 
     private Long id;
     private LocalDateTime createdAt;
@@ -55,8 +55,8 @@ public class DlqRecord {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DlqRecord dlqRecord = (DlqRecord) o;
-        return dequeued == dlqRecord.dequeued && Objects.equals(id, dlqRecord.id) && Objects.equals(createdAt, dlqRecord.createdAt) && Objects.equals(message, dlqRecord.message) && Objects.equals(exception, dlqRecord.exception);
+        DlqRecordResponseDto dlqRecordResponseDto = (DlqRecordResponseDto) o;
+        return dequeued == dlqRecordResponseDto.dequeued && Objects.equals(id, dlqRecordResponseDto.id) && Objects.equals(createdAt, dlqRecordResponseDto.createdAt) && Objects.equals(message, dlqRecordResponseDto.message) && Objects.equals(exception, dlqRecordResponseDto.exception);
     }
 
     @Override

@@ -114,7 +114,7 @@ public class KafkaConsumerConfig {
                     entry.setTopic(record.topic());
                     entry.setValue(mapper.writeValueAsString(record.value()));
                     recordDto.setMessage(mapper.writeValueAsString(entry));
-                    ResponseEntity<DlqRecord> response = restTemplate.postForEntity("http://localhost:8080/dlq/push", recordDto, DlqRecord.class);
+                    ResponseEntity<DlqRecordResponseDto> response = restTemplate.postForEntity("http://localhost:8080/dlq/push", recordDto, DlqRecordResponseDto.class);
                     if (response.getStatusCode() == HttpStatus.OK) {
                         LOGGER.error("Error thrown during handling of record " + record + ". Persisted as " + response, thrownException);
                     } else {

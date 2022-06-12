@@ -5,7 +5,7 @@ import com.github.frmi.dlq.api.data.DlqRecordRepository;
 import com.github.frmi.dlq.api.util.DlqMapper;
 import com.github.frmi.dlq.api.web.dto.DlqRecordDto;
 import com.github.frmi.dlq.api.web.dto.DlqRecordDtoResponse;
-import com.github.frmi.dlq.api.web.error.DlQRecordAlreadyRetriedException;
+import com.github.frmi.dlq.api.web.error.DlqRecordAlreadyRetriedException;
 import com.github.frmi.dlq.api.web.error.DlqRecordNotFoundException;
 import com.github.frmi.dlq.api.web.error.DlqRetryFailedException;
 import org.slf4j.Logger;
@@ -23,11 +23,11 @@ public class DlqService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DlqService.class);
 
     private final DlqRecordRepository repository;
-    private final DlqRetryer retryer;
+    private final DlqRetry retry;
 
-    public DlqService(DlqRecordRepository repository, DlqRetryer retryer) {
+    public DlqService(DlqRecordRepository repository, DlqRetry retry) {
         this.repository = repository;
-        this.retryer = retryer;
+        this.retry = retry;
     }
 
     public List<DlqRecordDtoResponse> getDlqRecords(boolean includeRetried) {
@@ -60,20 +60,20 @@ public class DlqService {
 
     }
 
-    public ResponseEntity<DlqRecordDtoResponse> retry(long id, boolean force) {
+    public DlqRecordDtoResponse retry(long id, boolean force) {
         DlqRecord record = repository.findById(id).orElseThrow(() -> new DlqRecordNotFoundException(id));
 
         if (record.isDequeued() && !force) {
-            throw new DlQRecordAlreadyRetriedException(id);
+            throw new DlqRecordAlreadyRetriedException(id);
         } else if (record.isDequeued() && force) {
             LOGGER.warn("Retrying already retried record. " + record);
         }
 
-        boolean result = retryer.retry(record);
+        boolean result = retry.retry(record);
         if (result) {
             record.setDequeued(true);
             record = repository.save(record);
-            return ResponseEntity.ok(DlqMapper.recordToResponseEntity(record));
+            return DlqMapper.recordToResponseEntity(record);
         }
 
         throw new DlqRetryFailedException(id);
