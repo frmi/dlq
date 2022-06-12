@@ -1,7 +1,11 @@
 package com.github.frmi.dlq.api.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class DlqRecordDto {
+    @JsonProperty(required = true)
     private String exception;
+    @JsonProperty(required = true)
     private String message;
 
     public String getException() {
