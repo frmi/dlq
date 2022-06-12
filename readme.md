@@ -116,7 +116,7 @@ public class DlqRecord {
 The API has an initial schema script. Thq dlq-app script showcases how to initialize the database using liquibase.
 2. Define a pojo that can contain the erroneous records and other information you need to retry this later and can be 
 serialized to a string
-3. Implement the [DlqRetry](#src/main/java/com/github/frmi/dlq/api/service/DlqRetry.java)
+3. Create implementation of [DlqRetry](https://github.com/frmi/dlq/blob/main/dead-letter-queue/dlq-api/src/main/java/com/github/frmi/dlq/api/service/DlqRetry.java)
 4. (Optional) Add OpenAPI for documentation and UI for the REST endpoints.
 5. Push record
 6. Retry record
