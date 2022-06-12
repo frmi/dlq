@@ -5,6 +5,7 @@ import com.github.frmi.dlq.api.data.DlqRecordRepository;
 import com.github.frmi.dlq.api.util.DlqMapper;
 import com.github.frmi.dlq.api.web.dto.DlqRecordDto;
 import com.github.frmi.dlq.api.web.dto.DlqRecordDtoResponse;
+import com.github.frmi.dlq.api.web.error.DlqFailedToPushException;
 import com.github.frmi.dlq.api.web.error.DlqRecordAlreadyRetriedException;
 import com.github.frmi.dlq.api.web.error.DlqRecordNotFoundException;
 import com.github.frmi.dlq.api.web.error.DlqRetryFailedException;
@@ -52,12 +53,11 @@ public class DlqService {
         record = repository.save(record);
         if (record.getId() != null) {
             LOGGER.info("Successfully persisted DlqRecord " + record);
-        } else {
-            LOGGER.error("Failed to persist DlqRecord " + record);
+            return DlqMapper.recordToResponseEntity(record);
         }
 
-        return DlqMapper.recordToResponseEntity(record);
-
+        LOGGER.error("Failed to persist DlqRecord " + dto);
+        throw new DlqFailedToPushException(dto);
     }
 
     public DlqRecordDtoResponse retry(long id, boolean force) {

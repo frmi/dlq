@@ -27,4 +27,11 @@ public class DeadLetterQueueAdvice {
         return ex.getMessage();
     }
 
+    @ResponseBody
+    @ExceptionHandler(DlqFailedToPushException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    String failedToPushHandler(DlqFailedToPushException ex) {
+        return ex.getMessage();
+    }
+
 }
