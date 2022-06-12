@@ -1,5 +1,4 @@
 # Dead Letter Queue
-***
 The idea with this project is to create an API to ease the setup of a Dead Letter Queue (dlq).
 
 The motivation for creating this project is the need for a Dead Letter Queue in a Microservice landscape using Kafka.
