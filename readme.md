@@ -1,4 +1,4 @@
-![example workflow](https://github.com/frmi/dlq/actions/workflows/maven.yml/badge.svg)
+![Build](https://github.com/frmi/dlq/actions/workflows/maven.yml/badge.svg)
 
 # Dead Letter Queue
 The idea with this project is to create an API to ease the setup of a Dead Letter Queue (dlq).
