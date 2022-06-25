@@ -27,6 +27,11 @@ public class DlqRecord {
     private boolean dequeued;
 
     /**
+     * Record created at.
+     */
+    private LocalDateTime dequeuedAt;
+
+    /**
      * Content of the message that holds everything for the user to retry this record.
      */
     @Lob
@@ -82,6 +87,14 @@ public class DlqRecord {
 
     public void setDequeued(boolean dequeued) {
         this.dequeued = dequeued;
+    }
+
+    public LocalDateTime getDequeuedAt() {
+        return dequeuedAt;
+    }
+
+    public void setDequeuedAt(LocalDateTime dequeuedAt) {
+        this.dequeuedAt = dequeuedAt;
     }
 
     @Override

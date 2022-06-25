@@ -15,6 +15,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,11 +52,11 @@ public class DlqService {
 
         record = repository.save(record);
         if (record.getId() != null) {
-            LOGGER.info("Successfully persisted DlqRecord " + record);
+            LOGGER.info("Successfully persisted DlqRecord. " + record);
             return DlqMapper.recordToResponseEntity(record);
         }
 
-        LOGGER.error("Failed to persist DlqRecord " + dto);
+        LOGGER.error("Failed to persist DlqRecord. " + dto);
         throw new DlqFailedToPushException(dto);
     }
 
@@ -68,11 +69,16 @@ public class DlqService {
             LOGGER.warn("Retrying already retried record. " + record);
         }
 
-        boolean result = retry.retry(record);
-        if (result) {
-            record.setDequeued(true);
-            record = repository.save(record);
-            return DlqMapper.recordToResponseEntity(record);
+        try {
+            boolean result = retry.retry(record);
+            if (result) {
+                record.setDequeued(true);
+                record.setDequeuedAt(LocalDateTime.now());
+                record = repository.save(record);
+                return DlqMapper.recordToResponseEntity(record);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception caught while retrying record. " + record, e);
         }
 
         throw new DlqRetryFailedException(id);

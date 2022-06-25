@@ -7,6 +7,7 @@ public class DlqRecordDtoResponse {
     private Long id;
     private LocalDateTime createdAt;
     private boolean dequeued;
+    private LocalDateTime dequeuedAt;
     private String message;
     private String exception;
 
@@ -50,4 +51,11 @@ public class DlqRecordDtoResponse {
         this.dequeued = dequeued;
     }
 
+    public LocalDateTime getDequeuedAt() {
+        return dequeuedAt;
+    }
+
+    public void setDequeuedAt(LocalDateTime dequeuedAt) {
+        this.dequeuedAt = dequeuedAt;
+    }
 }

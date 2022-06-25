@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.mockito.Mockito.when
+import java.time.LocalDateTime
 
 @SpringBootTest(classes = [DlqTestApplication, DlqService, DlqRecordRepository, DqlRetryMockConfig])
 class DlqServiceTest extends Specification {
@@ -108,6 +108,7 @@ class DlqServiceTest extends Specification {
         then:"Record is not yet retried / dequeued"
         record.getId() != null
         !record.isDequeued()
+        record.getDequeuedAt() == null
 
         when:
         DlqRecordDtoResponse response = dlqService.retry(record.getId(), false)
@@ -115,6 +116,9 @@ class DlqServiceTest extends Specification {
         then: "Record is now retried / dequeued"
         noExceptionThrown()
         response.isDequeued()
+        response.getDequeuedAt() != null
+        response.getDequeuedAt().isAfter(record.getCreatedAt())
+        response.getDequeuedAt().isBefore(LocalDateTime.now())
     }
 
     def "Retry - unsuccessful retry"() {
@@ -133,9 +137,12 @@ class DlqServiceTest extends Specification {
 
         when:
         dlqService.retry(record.getId(), false)
+        record = repository.findById(record.getId()).get()
 
         then: "Record is now retried / dequeued"
         thrown(DlqRetryFailedException)
+        !record.isDequeued()
+        record.getDequeuedAt() == null
     }
 
     def "Retry - already retried - no force"() {

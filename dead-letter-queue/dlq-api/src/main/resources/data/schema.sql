@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS dlq_record
     id bigint NOT NULL,
     created_at timestamp without time zone NOT NULL,
     dequeued boolean NOT NULL,
+    dequeued_at timestamp without time zone,
     exception oid,
     message oid NOT NULL,
     CONSTRAINT dlq_record_pkey PRIMARY KEY (id)
