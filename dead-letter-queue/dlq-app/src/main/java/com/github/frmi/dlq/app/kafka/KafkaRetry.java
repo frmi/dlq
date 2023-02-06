@@ -14,11 +14,17 @@ public class KafkaRetry implements DlqRetry {
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaRetry.class);
 
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    private final String retryTopicPostFix;
 
     public KafkaRetry(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
+        this(kafkaTemplate, objectMapper, null);
+    }
+
+    public KafkaRetry(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper, String retryTopicPostFix) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
+        this.retryTopicPostFix = retryTopicPostFix;
     }
 
     @Override
@@ -26,7 +32,8 @@ public class KafkaRetry implements DlqRetry {
 
         try {
             DlqEntry entry = objectMapper.readValue(record.getMessage(), DlqEntry.class);
-            ProducerRecord<String, String> producerRecord = new ProducerRecord<>(entry.getTopic(), entry.getPartition(), entry.getKey(), entry.getValue());
+            String topic = entry.getTopic() + retryTopicPostFix;
+            ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), entry.getValue());
             kafkaTemplate.send(producerRecord);
             LOGGER.info("Record has been retried. " + record);
             return true;

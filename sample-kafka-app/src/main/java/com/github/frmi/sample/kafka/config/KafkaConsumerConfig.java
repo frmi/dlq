@@ -7,11 +7,13 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RecordDeserializationException;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.TopicPartitionOffset;
@@ -45,6 +48,9 @@ public class KafkaConsumerConfig {
 
     @Value("${kafka.groupId}")
     private String groupId;
+
+    @Autowired
+    private KafkaTemplate<String, DlqRecordDto> kafkaTemplate;
 
     @Bean
     public ConsumerFactory<String, Greeting> consumerFactory() {
@@ -114,12 +120,17 @@ public class KafkaConsumerConfig {
                     entry.setTopic(record.topic());
                     entry.setValue(mapper.writeValueAsString(record.value()));
                     recordDto.setMessage(mapper.writeValueAsString(entry));
-                    ResponseEntity<DlqRecordResponseDto> response = restTemplate.postForEntity("http://localhost:8080/dlq/push", recordDto, DlqRecordResponseDto.class);
-                    if (response.getStatusCode() == HttpStatus.OK) {
-                        LOGGER.error("Error thrown during handling of record " + record + ". Persisted as " + response, thrownException);
+
+                    String topic = "dlq.queue";
+                    ProducerRecord<String, DlqRecordDto> producerRecord = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), recordDto);
+                    kafkaTemplate.send(producerRecord);
+                    LOGGER.error("Error thrown during handling of record " + record, thrownException);
+
+                    //ResponseEntity<DlqRecordResponseDto> response = restTemplate.postForEntity("http://localhost:8080/dlq/push", recordDto, DlqRecordResponseDto.class);
+                    /*if (response.getStatusCode() == HttpStatus.OK) {
                     } else {
                         LOGGER.error("Error pushing record " + record + ". Response " + response);
-                    }
+                    }*/
 
                 } catch (JsonProcessingException e) {
                     LOGGER.error("Error serializing value of record " + record, e);
