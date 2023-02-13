@@ -2,6 +2,7 @@ package com.github.frmi.sample.kafka.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.frmi.dlq.api.DlqHeaders;
 import com.github.frmi.dlq.api.data.DlqEntry;
 import com.github.frmi.dlq.api.dto.DlqRecordDto;
 import com.github.frmi.sample.kafka.model.Greeting;
@@ -11,6 +12,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RecordDeserializationException;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
@@ -29,7 +31,6 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -101,7 +102,7 @@ public class KafkaConsumerConfig {
 
             @Override
             public void handleRecord(Exception thrownException, ConsumerRecord<?, ?> record, Consumer<?, ?> consumer, MessageListenerContainer container) {
-                RestTemplate restTemplate = new RestTemplate();
+
                 DlqRecordDto recordDto = new DlqRecordDto();
 
                 StringWriter writer = new StringWriter();
@@ -113,7 +114,7 @@ public class KafkaConsumerConfig {
                     ObjectMapper mapper = new ObjectMapper();
 
                     DlqEntry entry = new DlqEntry();
-                    entry.setKey((String)record.key());
+                    entry.setKey((String) record.key());
                     entry.setOffset(record.offset());
                     entry.setPartition(record.partition());
                     entry.setTimestamp(record.timestamp());
@@ -123,6 +124,10 @@ public class KafkaConsumerConfig {
 
                     String topic = "dlq.topic.error";
                     ProducerRecord<String, DlqRecordDto> producerRecord = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), recordDto);
+                    Header dlqIdHeader = record.headers().lastHeader(DlqHeaders.DLQ_ID);
+                    if (dlqIdHeader != null) {
+                        producerRecord.headers().add(dlqIdHeader);
+                    }
                     kafkaTemplate.send(producerRecord);
                     LOGGER.error("Error thrown during handling of record " + record, thrownException);
 

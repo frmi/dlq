@@ -8,10 +8,12 @@ public class DlqRecordDtoResponse {
 
     private Long id;
     private LocalDateTime createdAt;
-    private boolean dequeued;
+    private LocalDateTime updatedAt;
+    private int retryCount;
     private LocalDateTime dequeuedAt;
     private DlqEntry entry;
     private String exception;
+    private boolean dequeued;
 
     public Long getId() {
         return id;
@@ -45,12 +47,12 @@ public class DlqRecordDtoResponse {
         this.entry = entry;
     }
 
-    public boolean isDequeued() {
-        return dequeued;
+    public int getRetryCount() {
+        return retryCount;
     }
 
-    public void setDequeued(boolean dequeued) {
-        this.dequeued = dequeued;
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
     }
 
     public LocalDateTime getDequeuedAt() {
@@ -59,5 +61,21 @@ public class DlqRecordDtoResponse {
 
     public void setDequeuedAt(LocalDateTime dequeuedAt) {
         this.dequeuedAt = dequeuedAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isDequeued() {
+        return dequeued;
+    }
+
+    public void setDequeued(boolean dequeued) {
+        this.dequeued = dequeued;
     }
 }
