@@ -13,7 +13,15 @@ public class KafkaSampleApplication {
     }
 
     @KafkaListener(topics = "${kafka.sample.topic}", groupId = "${kafka.groupId}")
-    public void listenGroupFoo(Greeting message) {
+    public void listen(Greeting message) {
+        if (message.getId() == 2) {
+            throw new RuntimeException("Id cannot be 2!");
+        }
+        System.out.println("Received Greeting: " + message.getGreeting());
+    }
+
+    @KafkaListener(topics = "${kafka.sample.topic.retry}", groupId = "${kafka.groupId}")
+    public void retry(Greeting message) {
         if (message.getId() == 2) {
             throw new RuntimeException("Id cannot be 2!");
         }

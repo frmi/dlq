@@ -24,14 +24,20 @@ public class DlqRecord {
     private LocalDateTime createdAt;
 
     /**
-     * Depicts whether the record has successfully been retried.
-     */
-    private boolean dequeued;
-
-    /**
      * Record created at.
      */
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    /**
+     * Record dequeued at.
+     */
     private LocalDateTime dequeuedAt;
+
+    /**
+     * Retry count.
+     */
+    private int retryCount;
 
     /**
      * Content of the message that holds everything for the user to retry this record.
@@ -48,7 +54,7 @@ public class DlqRecord {
 
     public DlqRecord() {
         this.createdAt = LocalDateTime.now();
-        this.dequeued = false;
+        this.updatedAt = createdAt;
     }
 
     public Long getId() {
@@ -67,6 +73,14 @@ public class DlqRecord {
         this.createdAt = createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public String getException() {
         return exception;
     }
@@ -83,14 +97,6 @@ public class DlqRecord {
         this.entry = message;
     }
 
-    public boolean isDequeued() {
-        return dequeued;
-    }
-
-    public void setDequeued(boolean dequeued) {
-        this.dequeued = dequeued;
-    }
-
     public LocalDateTime getDequeuedAt() {
         return dequeuedAt;
     }
@@ -99,17 +105,25 @@ public class DlqRecord {
         this.dequeuedAt = dequeuedAt;
     }
 
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DlqRecord dlqRecord = (DlqRecord) o;
-        return dequeued == dlqRecord.dequeued && Objects.equals(id, dlqRecord.id) && Objects.equals(createdAt, dlqRecord.createdAt) && Objects.equals(entry, dlqRecord.entry) && Objects.equals(exception, dlqRecord.exception);
+        return Objects.equals(id, dlqRecord.id) && Objects.equals(createdAt, dlqRecord.createdAt) && Objects.equals(entry, dlqRecord.entry) && Objects.equals(exception, dlqRecord.exception);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, createdAt, dequeued, entry, exception);
+        return Objects.hash(id, createdAt, entry, exception);
     }
 
     @Override
@@ -117,8 +131,9 @@ public class DlqRecord {
         return "DlqRecord{" +
                 "id=" + id +
                 ", createdAt=" + createdAt +
-                ", dequeued=" + dequeued +
-                ", message='" + entry + '\'' +
+                ", dequeuedAt=" + dequeuedAt +
+                ", retryCount=" + retryCount +
+                ", entry=" + entry +
                 ", exception='" + exception + '\'' +
                 '}';
     }

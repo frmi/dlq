@@ -5,7 +5,6 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.KafkaAdmin;
 
 import java.util.HashMap;
@@ -25,7 +24,7 @@ public class SampleKafkaConfiguration {
     }
 
     @Bean
-    public NewTopic topic1(@Value("${kafka.sample.topic}") String topic) {
-        return new NewTopic(topic, 1, (short)1);
+    public NewTopic createTopic(@Value("${kafka.sample.topic}") String topic) {
+        return new NewTopic(topic, 1, (short) 1);
     }
 }

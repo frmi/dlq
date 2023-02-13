@@ -1,8 +1,8 @@
 package com.github.frmi.dlq.app.util;
 
-import com.github.frmi.dlq.app.data.DlqRecord;
 import com.github.frmi.dlq.api.dto.DlqRecordDto;
 import com.github.frmi.dlq.api.dto.DlqRecordDtoResponse;
+import com.github.frmi.dlq.app.data.DlqRecord;
 
 public class DlqMapper {
 
@@ -21,9 +21,10 @@ public class DlqMapper {
         DlqRecordDtoResponse response = new DlqRecordDtoResponse();
         response.setException(record.getException());
         response.setEntry(record.getEntry());
+        response.setRetryCount(record.getRetryCount());
         response.setId(record.getId());
         response.setCreatedAt(record.getCreatedAt());
-        response.setDequeued(record.isDequeued());
+        response.setUpdatedAt(record.getUpdatedAt());
         response.setDequeuedAt(record.getDequeuedAt());
         return response;
     }
