@@ -26,6 +26,7 @@ public class DlqMapper {
         response.setCreatedAt(record.getCreatedAt());
         response.setUpdatedAt(record.getUpdatedAt());
         response.setDequeuedAt(record.getDequeuedAt());
+        response.setDequeued(record.isDequeued());
         return response;
     }
 

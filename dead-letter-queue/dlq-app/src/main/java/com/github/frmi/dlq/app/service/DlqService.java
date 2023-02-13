@@ -53,6 +53,7 @@ public class DlqService {
             Optional<DlqRecord> recordOpt = repository.findById(dlqId);
             record = recordOpt.orElseGet(() -> DlqMapper.dtoToEntity(dto));
             record.setUpdatedAt(LocalDateTime.now());
+            record.setDequeued(false);
         } else {
             record = DlqMapper.dtoToEntity(dto);
         }
@@ -77,6 +78,7 @@ public class DlqService {
                 LocalDateTime retriedAt = LocalDateTime.now();
                 record.setUpdatedAt(retriedAt);
                 record.setDequeuedAt(retriedAt);
+                record.setDequeued(true);
                 record = repository.save(record);
                 return DlqMapper.recordToResponseEntity(record);
             }

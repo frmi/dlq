@@ -13,6 +13,7 @@ public class DlqRecordDtoResponse {
     private LocalDateTime dequeuedAt;
     private DlqEntry entry;
     private String exception;
+    private boolean dequeued;
 
     public Long getId() {
         return id;
@@ -68,5 +69,13 @@ public class DlqRecordDtoResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isDequeued() {
+        return dequeued;
+    }
+
+    public void setDequeued(boolean dequeued) {
+        this.dequeued = dequeued;
     }
 }
