@@ -17,7 +17,6 @@
     <modules>
         <module>dlq-api</module>
         <module>dlq-app</module>
-        <module>dlq-api-kafka</module>
     </modules>
 
 </project>

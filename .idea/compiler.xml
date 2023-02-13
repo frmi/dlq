@@ -15,6 +15,7 @@
       <module name="dead-letter-queue" target="1.8" />
       <module name="dlq" target="1.5" />
       <module name="dlq-api" target="11" />
+      <module name="dlq-api-kafka" target="11" />
       <module name="dlq-app" target="11" />
       <module name="dlq-data" target="11" />
       <module name="sample-kafka-app" target="1.8" />
@@ -22,8 +23,9 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="dead-letter-queue" options="-parameters" />
+      <module name="dead-letter-queue" options="" />
       <module name="dlq-api" options="-parameters" />
+      <module name="dlq-api-kafka" options="-parameters" />
       <module name="dlq-app" options="-parameters" />
       <module name="dlq-data" options="-parameters" />
       <module name="sample-kafka-app" options="-parameters" />

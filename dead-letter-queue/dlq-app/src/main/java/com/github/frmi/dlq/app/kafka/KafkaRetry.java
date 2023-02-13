@@ -1,9 +1,9 @@
 package com.github.frmi.dlq.app.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.frmi.dlq.api.data.DlqRecord;
-import com.github.frmi.dlq.api.service.DlqRetry;
-import com.github.frmi.dlq.app.DlqEntry;
+import com.github.frmi.dlq.app.data.DlqRecord;
+import com.github.frmi.dlq.app.service.DlqRetry;
+import com.github.frmi.dlq.api.data.DlqEntry;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,18 +30,26 @@ public class KafkaRetry implements DlqRetry {
     @Override
     public boolean retry(DlqRecord record) {
 
+        DlqEntry entry = record.getEntry();
+        String topic = getRetryTopic(entry.getTopic());
+        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), entry.getValue());
         try {
-            DlqEntry entry = objectMapper.readValue(record.getMessage(), DlqEntry.class);
-            String topic = entry.getTopic() + retryTopicPostFix;
-            ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), entry.getValue());
             kafkaTemplate.send(producerRecord);
-            LOGGER.info("Record has been retried. " + record);
+            LOGGER.info("Record with id '{}' has been requeued on topic '{}'", record.getId(), topic);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Record could not be retried. " + record, e);
+            LOGGER.error(String.format("Record with id '%s' could not be retried on topic '%s'", record.getId(), topic), e);
         }
 
         return false;
+    }
+
+    private String getRetryTopic(String topic) {
+        if (retryTopicPostFix == null || retryTopicPostFix.isBlank()) {
+            return topic;
+        }
+
+        return String.format("%s.%s", topic, retryTopicPostFix);
     }
 
 }

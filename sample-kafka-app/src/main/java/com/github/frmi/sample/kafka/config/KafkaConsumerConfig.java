@@ -2,6 +2,8 @@ package com.github.frmi.sample.kafka.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.frmi.dlq.api.data.DlqEntry;
+import com.github.frmi.dlq.api.dto.DlqRecordDto;
 import com.github.frmi.sample.kafka.model.Greeting;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -17,8 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -43,7 +43,7 @@ public class KafkaConsumerConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumerConfig.class);
 
-    @Value("${kafka.bootstrapAddress}")
+    @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
     @Value("${kafka.groupId}")
@@ -119,9 +119,9 @@ public class KafkaConsumerConfig {
                     entry.setTimestamp(record.timestamp());
                     entry.setTopic(record.topic());
                     entry.setValue(mapper.writeValueAsString(record.value()));
-                    recordDto.setMessage(mapper.writeValueAsString(entry));
+                    recordDto.setEntry(entry);
 
-                    String topic = "dlq.queue";
+                    String topic = "dlq.topic.error";
                     ProducerRecord<String, DlqRecordDto> producerRecord = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), recordDto);
                     kafkaTemplate.send(producerRecord);
                     LOGGER.error("Error thrown during handling of record " + record, thrownException);
