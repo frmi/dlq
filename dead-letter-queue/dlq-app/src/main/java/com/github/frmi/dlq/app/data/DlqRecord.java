@@ -48,7 +48,7 @@ public class DlqRecord {
      * Content of the message that holds everything for the user to retry this record.
      */
     @Convert(converter = DlqEntryConverter.class)
-    @Column(nullable = false, length = 10000)
+    @Column(nullable = false)
     @Lob
     private DlqEntry entry;
 
