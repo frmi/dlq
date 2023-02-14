@@ -49,6 +49,7 @@ public class DlqRecord {
      */
     @Convert(converter = DlqEntryConverter.class)
     @Column(nullable = false, length = 10000)
+    @Lob
     private DlqEntry entry;
 
     /**
@@ -130,8 +131,8 @@ public class DlqRecord {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DlqRecord record = (DlqRecord) o;
-        return id.equals(record.id);
+        DlqRecord dlqRecord = (DlqRecord) o;
+        return id.equals(dlqRecord.id);
     }
 
     @Override
