@@ -1,15 +1,14 @@
 package com.github.frmi.dlq.app.service
 
-
-import com.github.frmi.dlq.app.DlqTestApplication
-import com.github.frmi.dlq.app.DqlRetryMockConfig
-import com.github.frmi.dlq.app.data.DlqRecord
-import com.github.frmi.dlq.app.data.DlqRecordRepository
+import com.github.frmi.dlq.api.data.DlqEntry
 import com.github.frmi.dlq.api.dto.DlqRecordDto
 import com.github.frmi.dlq.api.dto.DlqRecordDtoResponse
-import com.github.frmi.dlq.app.error.DlqRecordAlreadyRetriedException
+import com.github.frmi.dlq.app.DlqTestApplication
+import com.github.frmi.dlq.app.DqlRetryMockConfig
 import com.github.frmi.dlq.app.error.DlqRecordNotFoundException
 import com.github.frmi.dlq.app.error.DlqRetryFailedException
+import com.github.frmi.dlq.data.DlqRecord
+import com.github.frmi.dlq.data.DlqRecordRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
@@ -17,6 +16,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @SpringBootTest(classes = [DlqTestApplication, DlqService, DlqRecordRepository, DqlRetryMockConfig])
 class DlqServiceTest extends Specification {
@@ -32,11 +32,11 @@ class DlqServiceTest extends Specification {
 
     void setup() {
         DlqRecord record1 = new DlqRecord()
-        record1.setMessage("record1")
+        record1.setEntry(createDlqEntry())
         record1.setException("Exception")
         repository.save(record1)
         DlqRecord record2 = new DlqRecord()
-        record2.setMessage("record2")
+        record2.setEntry(createDlqEntry())
         record2.setException("Exception")
         record2.setDequeued(true)
         repository.save(record2)
@@ -63,7 +63,7 @@ class DlqServiceTest extends Specification {
     def "FindById"() {
         given:
         DlqRecord record = new DlqRecord()
-        record.setMessage("record")
+        record.setEntry(createDlqEntry())
         record.setException("Exception")
         record = repository.save(record)
 
@@ -84,12 +84,12 @@ class DlqServiceTest extends Specification {
 
     def "Push"() {
         given:
-        DlqRecordDto record = new DlqRecordDto()
-        record.setMessage("record")
-        record.setException("Exception")
+        DlqRecordDto recordDto = new DlqRecordDto()
+        recordDto.setEntry(createDlqEntry())
+        recordDto.setException("Exception")
 
         when:
-        DlqRecordDtoResponse response = dlqService.push(record)
+        DlqRecordDtoResponse response = dlqService.push(recordDto, null)
         then:
         noExceptionThrown()
         response.getId() != null
@@ -99,7 +99,7 @@ class DlqServiceTest extends Specification {
     def "Retry - successful retry"() {
         given:
         DlqRecord record = new DlqRecord()
-        record.setMessage("record")
+        record.setEntry(createDlqEntry())
         record.setException("Exception")
 
         when:
@@ -112,7 +112,7 @@ class DlqServiceTest extends Specification {
         record.getDequeuedAt() == null
 
         when:
-        DlqRecordDtoResponse response = dlqService.retry(record.getId(), false)
+        DlqRecordDtoResponse response = dlqService.retry(record.getId())
 
         then: "Record is now retried / dequeued"
         noExceptionThrown()
@@ -125,7 +125,7 @@ class DlqServiceTest extends Specification {
     def "Retry - unsuccessful retry"() {
         given:
         DlqRecord record = new DlqRecord()
-        record.setMessage("record")
+        record.setEntry(createDlqEntry())
         record.setException("Exception")
 
         when:
@@ -137,7 +137,7 @@ class DlqServiceTest extends Specification {
         !record.isDequeued()
 
         when:
-        dlqService.retry(record.getId(), false)
+        dlqService.retry(record.getId())
         record = repository.findById(record.getId()).get()
 
         then: "Record is now retried / dequeued"
@@ -146,41 +146,15 @@ class DlqServiceTest extends Specification {
         record.getDequeuedAt() == null
     }
 
-    def "Retry - already retried - no force"() {
-        given:
-        DlqRecord record = new DlqRecord()
-        record.setMessage("record")
-        record.setException("Exception")
-        record.setDequeued(true)
-
-        when:
-        record = repository.save(record)
-        dlqService.retry(record.getId(), false)
-
-        then: "Record is now retried / dequeued"
-        thrown(DlqRecordAlreadyRetriedException)
-    }
-
-    def "Retry - already retried - with force"() {
-        given:
-        DlqRecord record = new DlqRecord()
-        record.setMessage("record")
-        record.setException("Exception")
-        record.setDequeued(true)
-
-        when:
-        record = repository.save(record)
-        retry.retry(_ as DlqRecord) >> true
-
-        then:"Record is correctly persisted"
-        record.getId() != null
-
-        when: "Retry"
-        DlqRecordDtoResponse response = dlqService.retry(record.getId(), true)
-
-        then: "Record is now retried / dequeued"
-        noExceptionThrown()
-        response.isDequeued()
+    DlqEntry createDlqEntry() {
+        def entry = new DlqEntry()
+        entry.setKey("key")
+        entry.setOffset(1)
+        entry.setPartition(1)
+        entry.setTimestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+        entry.setTopic("dummy.topic")
+        entry.setValue("{}")
+        return entry
     }
 
 }

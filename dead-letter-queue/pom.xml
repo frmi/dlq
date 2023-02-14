@@ -17,6 +17,8 @@
     <modules>
         <module>dlq-api</module>
         <module>dlq-app</module>
+        <module>dlq-batch</module>
+        <module>dlq-data</module>
     </modules>
 
 </project>

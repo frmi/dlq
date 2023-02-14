@@ -1,4 +1,4 @@
-package com.github.frmi.dlq.app.data;
+package com.github.frmi.dlq.data;
 
 import com.github.frmi.dlq.api.data.DlqEntry;
 

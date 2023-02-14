@@ -1,10 +1,9 @@
 package com.github.frmi.dlq.app.kafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.frmi.dlq.api.DlqHeaders;
 import com.github.frmi.dlq.api.data.DlqEntry;
-import com.github.frmi.dlq.app.data.DlqRecord;
 import com.github.frmi.dlq.app.service.DlqRetry;
+import com.github.frmi.dlq.data.DlqRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +18,7 @@ public class KafkaRetry implements DlqRetry {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final String retryTopicPostFix;
 
-    public KafkaRetry(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
-        this(kafkaTemplate, objectMapper, null);
-    }
-
-    public KafkaRetry(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper, String retryTopicPostFix) {
+    public KafkaRetry(KafkaTemplate<String, String> kafkaTemplate, String retryTopicPostFix) {
         this.kafkaTemplate = kafkaTemplate;
         this.retryTopicPostFix = retryTopicPostFix;
     }
@@ -33,11 +28,11 @@ public class KafkaRetry implements DlqRetry {
         DlqEntry entry = dlqRecord.getEntry();
         String topic = getRetryTopic(entry.getTopic());
 
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), entry.getValue());
-        record.headers().add(DlqHeaders.DLQ_ID, String.valueOf(dlqRecord.getId()).getBytes(StandardCharsets.UTF_8));
+        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, entry.getPartition(), entry.getKey(), entry.getValue());
+        producerRecord.headers().add(DlqHeaders.DLQ_ID, String.valueOf(dlqRecord.getId()).getBytes(StandardCharsets.UTF_8));
 
         try {
-            kafkaTemplate.send(record);
+            kafkaTemplate.send(producerRecord);
             LOGGER.info("Record with id '{}' has been requeued on topic '{}'", dlqRecord.getId(), topic);
             return true;
         } catch (Exception e) {

@@ -1,7 +1,10 @@
 package com.github.frmi.dlq.app.error;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class DeadLetterQueueAdvice {
@@ -28,9 +31,9 @@ public class DeadLetterQueueAdvice {
     }
 
     @ResponseBody
-    @ExceptionHandler(DlqFailedToPushException.class)
+    @ExceptionHandler(DlqFailedToPersistException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    String failedToPushHandler(DlqFailedToPushException ex) {
+    String failedToPushHandler(DlqFailedToPersistException ex) {
         return ex.getMessage();
     }
 

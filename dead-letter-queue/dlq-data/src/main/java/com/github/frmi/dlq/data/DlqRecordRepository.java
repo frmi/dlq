@@ -1,4 +1,4 @@
-package com.github.frmi.dlq.app.data;
+package com.github.frmi.dlq.data;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

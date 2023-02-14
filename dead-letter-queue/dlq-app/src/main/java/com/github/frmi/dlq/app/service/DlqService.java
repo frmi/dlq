@@ -2,12 +2,12 @@ package com.github.frmi.dlq.app.service;
 
 import com.github.frmi.dlq.api.dto.DlqRecordDto;
 import com.github.frmi.dlq.api.dto.DlqRecordDtoResponse;
-import com.github.frmi.dlq.app.data.DlqRecord;
-import com.github.frmi.dlq.app.data.DlqRecordRepository;
-import com.github.frmi.dlq.app.error.DlqFailedToPushException;
+import com.github.frmi.dlq.app.error.DlqFailedToPersistException;
 import com.github.frmi.dlq.app.error.DlqRecordNotFoundException;
 import com.github.frmi.dlq.app.error.DlqRetryFailedException;
 import com.github.frmi.dlq.app.util.DlqMapper;
+import com.github.frmi.dlq.data.DlqRecord;
+import com.github.frmi.dlq.data.DlqRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
@@ -34,11 +34,13 @@ public class DlqService {
     public List<DlqRecordDtoResponse> getDlqRecords(boolean includeRetried) {
         if (!includeRetried) {
             DlqRecord probe = new DlqRecord();
+            probe.setDequeued(false);
             probe.setCreatedAt(null);
+            probe.setUpdatedAt(null);
             return repository.findAll(Example.of(probe), Sort.by("createdAt")).stream().map(DlqMapper::recordToResponseEntity).collect(Collectors.toList());
         }
 
-        return repository.findAll().stream().map(DlqMapper::recordToResponseEntity).collect(Collectors.toList());
+        return repository.findAll(Sort.by("createdAt")).stream().map(DlqMapper::recordToResponseEntity).collect(Collectors.toList());
     }
 
     public DlqRecordDtoResponse findById(long id) {
@@ -48,42 +50,41 @@ public class DlqService {
 
     public DlqRecordDtoResponse push(DlqRecordDto dto, Long dlqId) {
 
-        DlqRecord record;
+        DlqRecord dlqRecord;
         if (dlqId != null) {
             Optional<DlqRecord> recordOpt = repository.findById(dlqId);
-            record = recordOpt.orElseGet(() -> DlqMapper.dtoToEntity(dto));
-            record.setUpdatedAt(LocalDateTime.now());
-            record.setDequeued(false);
+            dlqRecord = recordOpt.orElseGet(() -> DlqMapper.dtoToEntity(dto));
+            dlqRecord.setUpdatedAt(LocalDateTime.now());
+            dlqRecord.setDequeued(false);
         } else {
-            record = DlqMapper.dtoToEntity(dto);
+            dlqRecord = DlqMapper.dtoToEntity(dto);
         }
 
         try {
-            record = repository.save(record);
-            LOGGER.info("Successfully persisted DlqRecord. " + record.getEntry());
-            return DlqMapper.recordToResponseEntity(record);
+            dlqRecord = repository.save(dlqRecord);
+            LOGGER.info("Successfully persisted DlqRecord with id '{}'", dlqRecord.getId());
+            return DlqMapper.recordToResponseEntity(dlqRecord);
         } catch (Exception e) {
-            LOGGER.error("Failed to persist DlqRecord. " + dto.getEntry(), e);
-            throw new DlqFailedToPushException(dto, e);
+            throw new DlqFailedToPersistException(dto, e);
         }
     }
 
     public DlqRecordDtoResponse retry(long id) {
-        DlqRecord record = repository.findById(id).orElseThrow(() -> new DlqRecordNotFoundException(id));
+        DlqRecord dlqRecord = repository.findById(id).orElseThrow(() -> new DlqRecordNotFoundException(id));
 
         try {
-            boolean result = retry.retry(record);
+            boolean result = retry.retry(dlqRecord);
             if (result) {
-                record.setRetryCount(record.getRetryCount() + 1);
+                dlqRecord.setRetryCount(dlqRecord.getRetryCount() + 1);
                 LocalDateTime retriedAt = LocalDateTime.now();
-                record.setUpdatedAt(retriedAt);
-                record.setDequeuedAt(retriedAt);
-                record.setDequeued(true);
-                record = repository.save(record);
-                return DlqMapper.recordToResponseEntity(record);
+                dlqRecord.setUpdatedAt(retriedAt);
+                dlqRecord.setDequeuedAt(retriedAt);
+                dlqRecord.setDequeued(true);
+                dlqRecord = repository.save(dlqRecord);
+                return DlqMapper.recordToResponseEntity(dlqRecord);
             }
         } catch (Exception e) {
-            LOGGER.error("Exception caught while retrying record. " + record, e);
+            LOGGER.error("Exception caught while retrying dlqRecord. " + dlqRecord, e);
         }
 
         throw new DlqRetryFailedException(id);

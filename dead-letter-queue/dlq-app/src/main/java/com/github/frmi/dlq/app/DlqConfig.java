@@ -13,9 +13,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 public class DlqConfig {
 
     @Bean
-    public DlqRetry retryer(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper,
-                            @Value("${dlq.topic.retry.postfix:#{null}}") String postfixTopic) {
-        return new KafkaRetry(kafkaTemplate, objectMapper, postfixTopic);
+    public DlqRetry retryer(KafkaTemplate<String, String> kafkaTemplate, @Value("${dlq.topic.retry.postfix:#{null}}") String postfixTopic) {
+        return new KafkaRetry(kafkaTemplate, postfixTopic);
     }
 
     @Bean

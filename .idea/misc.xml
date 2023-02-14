@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
@@ -11,7 +12,6 @@
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/dead-letter-queue/dlq-api-kafka/pom.xml" />
-        <option value="$PROJECT_DIR$/dead-letter-queue/dlq-data/pom.xml" />
       </set>
     </option>
   </component>

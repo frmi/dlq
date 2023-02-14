@@ -2,7 +2,7 @@ package com.github.frmi.dlq.app.util;
 
 import com.github.frmi.dlq.api.dto.DlqRecordDto;
 import com.github.frmi.dlq.api.dto.DlqRecordDtoResponse;
-import com.github.frmi.dlq.app.data.DlqRecord;
+import com.github.frmi.dlq.data.DlqRecord;
 
 public class DlqMapper {
 
@@ -17,16 +17,16 @@ public class DlqMapper {
         return dlqRecord;
     }
 
-    public static DlqRecordDtoResponse recordToResponseEntity(DlqRecord record) {
+    public static DlqRecordDtoResponse recordToResponseEntity(DlqRecord dlqRecord) {
         DlqRecordDtoResponse response = new DlqRecordDtoResponse();
-        response.setException(record.getException());
-        response.setEntry(record.getEntry());
-        response.setRetryCount(record.getRetryCount());
-        response.setId(record.getId());
-        response.setCreatedAt(record.getCreatedAt());
-        response.setUpdatedAt(record.getUpdatedAt());
-        response.setDequeuedAt(record.getDequeuedAt());
-        response.setDequeued(record.isDequeued());
+        response.setException(dlqRecord.getException());
+        response.setEntry(dlqRecord.getEntry());
+        response.setRetryCount(dlqRecord.getRetryCount());
+        response.setId(dlqRecord.getId());
+        response.setCreatedAt(dlqRecord.getCreatedAt());
+        response.setUpdatedAt(dlqRecord.getUpdatedAt());
+        response.setDequeuedAt(dlqRecord.getDequeuedAt());
+        response.setDequeued(dlqRecord.isDequeued());
         return response;
     }
 

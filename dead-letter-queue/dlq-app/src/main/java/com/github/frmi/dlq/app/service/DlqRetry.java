@@ -1,6 +1,6 @@
 package com.github.frmi.dlq.app.service;
 
-import com.github.frmi.dlq.app.data.DlqRecord;
+import com.github.frmi.dlq.data.DlqRecord;
 
 /**
  * Defines how the Dead Letter Queue records should be retried.
@@ -9,9 +9,10 @@ public interface DlqRetry {
 
     /**
      * Retry mechanism.
-     * @param record The record requested retried.
+     *
+     * @param dlqRecord The dlqRecord requested retried.
      * @return {@code true} if retried successfully; {@code false} otherwise.
      */
-    boolean retry(DlqRecord record);
+    boolean retry(DlqRecord dlqRecord);
 
 }
